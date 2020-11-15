@@ -1,21 +1,27 @@
 let squares = [];  // array of squares
 let circles = [];  // array of circles
-let oscSine;       // circle synth 1
-let oscSine2;
-let oscSine3;
-// let midiNotes = [82, 84, 92, 122]; eventual midi note to freq
-// let noteIndex = 0;
+let oscSine, oscSine2, oscSine3;       // circle synths
+let midiNotes = [50, 57, 62, 69, 74, 78, 81, 85]; //scale of notes
+let noteIndex, noteIndex2, noteIndex3; // position of circles y value which...
+let midiVal, midVal2, midiVal3;//..determines the midi value from midiNotes array
+let freq, freq2, freq3; //... which determines the frequency of the circles
 let counts = []; // array counting the number of playing oscillators
 
 function setup() {
   createCanvas(800, 600);
 
-  soundLoop1 = new p5.SoundLoop(onSoundLoop1, 1);  // 1 second soundloop
-  soundLoop2 = new p5.SoundLoop(onSoundLoop2, 0.1);  // 0.1 second soundloop
+  soundLoop1 = new p5.SoundLoop(onSoundLoop1, 2);  // 2 second soundloop
+  soundLoop2 = new p5.SoundLoop(onSoundLoop2, 1);  // 1 second soundloop
+  soundLoop3 = new p5.SoundLoop(onSoundLoop3, 0.5);  // 0.5 second soundloop
+  soundLoop4 = new p5.SoundLoop(onSoundLoop4, 0.25);  // 0.25 second soundloop
+
+  soundLoop1.syncedStart(soundLoop2) //syncing all loops to soundLoop 1
+  soundLoop1.syncedStart(soundLoop3)
+  soundLoop1.syncedStart(soundLoop4)
 
   oscSine = new p5.Oscillator('sine');  // circle synth 1
-  oscSine2 = new p5.Oscillator('sine');
-  oscSine3 = new p5.Oscillator('sine');
+  oscSine2 = new p5.Oscillator('sine'); // circle synth 2
+  oscSine3 = new p5.Oscillator('sine'); // circle synth 3
 
   object = new Cursor();   // mouse
 
@@ -35,62 +41,126 @@ function setup() {
   }
 }
 
+function soundRules1() {  // determines the pitch and amplitude for circle 1
+  //gives value between 0 and 7 in relation to circle[0]'s y value
+  noteIndex = round(map(circles[0].y, 0, height, 0 , 7));
+  // converts that value to a midiNote from the array
+  midiVal = midiNotes[noteIndex % midiNotes.length];
+  // converts midiVal to a frequency for oscSine
+  oscSine.freq(midiToFreq(midiVal));
+  oscSine.amp(0.1);
+}
+
+function soundRules2() { // determines the pitch and amplitude for circle 2
+  noteIndex2 = round(map(circles[1].y, 0, height, 0 , 7));
+  midiVal2 = midiNotes[noteIndex2 % midiNotes.length];
+  oscSine2.freq(midiToFreq(midiVal2));
+  oscSine2.amp(0.1);
+}
+
+function soundRules3() { // determines the pitch and amplitude for circle 3
+  noteIndex3 = round(map(circles[2].y, 0, height, 0 , 7));
+  midiVal3 = midiNotes[noteIndex3 % midiNotes.length];
+  oscSine3.freq(midiToFreq(midiVal3));
+  oscSine3.amp(0.1);
+}
 
 function onSoundLoop1() {
   for (let i = 0; i < circles.length; i++)
-      if (counts.includes(0) && circles[0].x < width/2) {
+    if (counts.includes(0) && circles[0].x < width/4) {
+      soundRules1();
+      oscSine.amp(0, 1.3);
       oscSine.start();
-      oscSine.amp(0.2);
-      oscSine.amp(0, 0.5);
-      oscSine.freq(random(100, 200));
     }
-    if (counts.includes(1) && circles[1].x < width/2) {
+    if (counts.includes(1) && circles[1].x < width/4) {
+      soundRules2();
+      oscSine2.amp(0, 1.3);
       oscSine2.start();
-      oscSine2.amp(0.2);
-      oscSine2.amp(0, 0.5);
-      oscSine2.freq(random(300, 301));
     }
-    if (counts.includes(2) && circles[2].x < width/2) {
+    if (counts.includes(2) && circles[2].x < width/4) {
+      soundRules3();
+      oscSine3.amp(0, 1.3);
       oscSine3.start();
-      oscSine3.amp(0.2);
-      oscSine3.amp(0, 0.5);
-      oscSine3.freq(random(1000, 1001));
     }
 }
 
 function onSoundLoop2() {
   for (let i = 0; i < circles.length; i++)
-      if (counts.includes(0) && circles[0].x > width/2) {
+    if (counts.includes(0) && circles[0].x > width/4 && circles[0].x < width/2) {
+      soundRules1();
+      oscSine.amp(0, 0.7);
       oscSine.start();
-      oscSine.amp(0.2);
-      oscSine.amp(0, 0.5);
-      oscSine.freq(random(100, 200));
     }
-    if (counts.includes(1) && circles[1].x > width/2) {
+    if (counts.includes(1) && circles[1].x > width/4 && circles[1].x < width/2) {
+      soundRules2();
+      oscSine2.amp(0, 0.7);
       oscSine2.start();
-      oscSine2.amp(0.2);
-      oscSine2.amp(0, 0.5);
-      oscSine2.freq(random(300, 301));
     }
-    if (counts.includes(2) && circles[2].x > width/2) {
+    if (counts.includes(2) && circles[2].x > width/4 && circles[2].x < width/2) {
+      soundRules3();
+      oscSine3.amp(0, 0.7);
       oscSine3.start();
-      oscSine3.amp(0.2);
-      oscSine3.amp(0, 0.5);
-      oscSine3.freq(random(1000, 1001));
     }
 }
+
+function onSoundLoop3() {
+  for (let i = 0; i < circles.length; i++)
+    if (counts.includes(0) && circles[0].x > width/2 && circles[0].x < width - width/4) {
+      soundRules1();
+      oscSine.amp(0, 0.35);
+      oscSine.start();
+    }
+    if (counts.includes(1) && circles[1].x > width/2 && circles[1].x < width - width/4) {
+      soundRules2();
+      oscSine2.amp(0, 0.35);
+      oscSine2.start();
+    }
+    if (counts.includes(2) && circles[2].x > width/2 && circles[2].x < width - width/4) {
+      soundRules3();
+      oscSine3.amp(0, 0.35);
+      oscSine3.start();
+    }
+}
+
+function onSoundLoop4() {
+  for (let i = 0; i < circles.length; i++)
+    if (counts.includes(0) && circles[0].x > width - width/4) {
+      soundRules1();
+      oscSine.amp(0, 0.2);
+      oscSine.start();
+    }
+    if (counts.includes(1) && circles[1].x > width - width/4) {
+      soundRules2();
+      oscSine2.amp(0, 0.2);
+      oscSine2.start();
+    }
+    if (counts.includes(2) && circles[2].x > width - width/4) {
+      soundRules3();
+      oscSine3.amp(0, 0.2);
+      oscSine3.start();
+    }
+}
+
 
 function mousePressed() {
   for (let i = 0; i < circles.length; i++)
       if (circles[i].clicked() && counts.indexOf(i) !== -1){ // if circle x is clicked and x is within array
         counts.splice(counts.indexOf(i), 1);                 //splice x from array
-      } else if (circles[i].x > width/2 && circles[i].clicked() && counts.includes(i) == false){
+      } else if (circles[i].x > width - width/4 && circles[i].clicked()){
+        counts.push(i);
+        soundLoop4.start();
+      } else if (circles[i].x > width/2 && circles[i].x < width - width/4
+        && circles[i].clicked()){
+        counts.push(i);
+        soundLoop3.start();
+      } else if (circles[i].x > width/4 && circles[i].x < width/2
+        && circles[i].clicked()){
         counts.push(i);
         soundLoop2.start();
-      } else if (circles[i].x < width/2 && circles[i].clicked() && counts.includes(i) == false){
+      } else if (circles[i].x < width/4 && circles[i].clicked()){
         counts.push(i);
         soundLoop1.start();
-      }
+    }
 }
 
 function mouseDragged() {
@@ -99,13 +169,13 @@ function mouseDragged() {
       if (circles[i].rollover() == true) {
         circles[i].x = mouseX
         circles[i].y = mouseY
-        // soundLoop1.stop();
       }
     }
 }
 
 function draw() {
   background(35);
+
 
   for (let i = 0; i < squares.length; i++){
       squares[i].show();
@@ -114,7 +184,8 @@ function draw() {
       circles[i].show();
   }
     object.showEllipse();
-    alphaChange();
+
+
 }
 
 
@@ -127,16 +198,16 @@ function draw() {
 //   }
 // }
 
-
-function alphaChange() {
-  for (let i = 0; i < circles.length; i++){
-      if (circles[i].rollover() == true) {
-        circles[i].alpha = 50;
-      } else {
-        circles[i].alpha = 255;
-      }
-  }
-}
+//
+// function alphaChange() {
+//   for (let i = 0; i < circles.length; i++){
+//       if (circles[i].() == true) {
+//         circles[i].alpha = 50;
+//       } else {
+//         circles[i].alpha = 255;
+//       }
+//   }
+// }
 
 
 class Circle {
